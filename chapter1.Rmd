@@ -1,4 +1,23 @@
 
-# About the project
+---
+title: "Introduction to Open Data Science"
+output: html_document
+---
 
+<!-- Original instructions; now commented out.
 *Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+-->
+
+# About the Project
+
+This is my personal project page for the University of Helsinki statistics course named “Introduction to Open Data Science”.
+
+# About Me
+
+My name is Pinja-Liina Jalkanen.
+
+Please be forewarned that my statistics skills are rather crappy and usually limited to some simple descriptives and regressions. I do know some tech stuff quite well, though, so I don't expect great difficulties with the R syntax, Git or the like. Kimmo Vehkalahti said on the first course lesson that data analysis is often 90% preparation of the data and 10% doing the analysis. I don't know about the weighing on this course, but I usually don't need help with the 90% at all; that's mostly like, [RTFM, STFW and the like](https://en.wikipedia.org/wiki/RTFM) anyway.
+
+With regard to the 10% though, I don't trust my skills at all.
+
+Link to this project: https://github.com/pinjaliina/IODS-project
