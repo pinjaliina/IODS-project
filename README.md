@@ -1,12 +1,4 @@
----
-title: "README"
-author: "Pinja-Liina Jalkanen"
-date: "22/01/2017"
-output:
-  md_document:
-    variant: markdown_github
----
-
-# About This Project
+About This Project
+==================
 
 This project exist solely to complete the University of Helsinki statistics course “Introduction to Open Data Science”. For details, see my [course diary](https://*your-github_username*.github.io/IODS-project/).
