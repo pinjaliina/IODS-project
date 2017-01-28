@@ -20,10 +20,7 @@ output:
   
 ***
   
-# Chapter 2
-The contents of the file “chapter2.Rmd” are deliberately hidden for now. The course instructions didn't ask us to change it just yet.
-<!---```{r child = "chapter2.Rmd"}
+```{r child = "chapter2.Rmd"}
 ```
--->
 
 ***
