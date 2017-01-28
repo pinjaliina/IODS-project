@@ -31,7 +31,7 @@ The data of the analysis in this exercise was the Autumn 2014 Introductory Stati
 
 For the analysis, I've averaged the variables related to deep learning, surface learning, and strategic learning. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_learning2014.R))
 
-Note: the chosen theme of my course diary might hide the R code by default. If you can't see the code, open the code menu from the top right corner of the diary and click “Show All Code”.
+**Note: it seems that the chosen theme of my course diary hides embedded R code by default, even if ```echo``` is set to ```TRUE```. If you can't see the code, open the code menu from the top right corner of the diary and click “Show All Code”.**
 
 ## Overview of the Data
 
