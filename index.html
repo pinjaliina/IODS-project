@@ -115,7 +115,7 @@ $(document).ready(function () {
 </style>
 <script>
 $(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
+  window.initializeCodeFolding("show" === "show");
 });
 </script>
 
@@ -264,8 +264,7 @@ div.tocify {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>The data of the analysis in this exercise was the Autumn 2014 Introductory Statistics Course Learning Questionnaire. The data has 60 variables and 183 observations; except for the few background related variables (age, attitude towards statistics, course points), most of the questions were learning-related questions with answers given on Likert scale, from 1 to 5.</p>
-<p>For the analysis, I’ve averaged the variables related to deep learning, surface learning, and strategic learning. (For the initial data wrangling part of this exercise, see <a href="https://github.com/pinjaliina/IODS-project/blob/master/data/create_learning2014.R">this R script</a>)</p>
-<p><strong>Note: it seems that the chosen theme of my course diary hides embedded R code by default, even if <code>echo</code> is set to <code>TRUE</code>. If you can’t see the code, open the code menu from the top right corner of the diary and click “Show All Code”.</strong></p>
+<p>For the analysis, I’ve averaged the variables related to deep learning, surface learning, and strategic learning. (For the initial data wrangling part of this exercise, see <a href="https://github.com/pinjaliina/IODS-project/blob/master/data/create_learning2014.R">this R script</a>).</p>
 </div>
 <div id="overview-of-the-data" class="section level2">
 <h2>Overview of the Data</h2>
@@ -372,7 +371,7 @@ plot(lrn2014_model, which = c(1,2,5))</code></pre>
 <p>Interpretation of the plots:</p>
 <ol style="list-style-type: decimal">
 <li>The Q–Q-plot demonstrates that the standardised residuals of the model fit to the theoretical quantities reasonably well, so the normal distribution assumption is valid.</li>
-<li>The residuals vs. fitted values plot doesn’t show any kind of pattern, so the errors are not correlated and their size is independent of the explanatory variables (their σ<sup>2</sup> is constant)</li>
+<li>The residuals vs. fitted values plot doesn’t show any kind of pattern, so the errors are not correlated and their size is independent of the explanatory variables (their σ<sup>2</sup> is constant).</li>
 <li>In addition to checking the abovementioned assumptions, it is recommended to check that no single observation has an oversized effect on the model, because these might distort the model coefficients. As the x-axis scale of the residuals vs. leverage plot is relatively narrow with no significant outliers, we can conclude that the model is not distorted by any single observation.</li>
 </ol>
 <hr />

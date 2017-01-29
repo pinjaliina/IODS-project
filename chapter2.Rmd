@@ -29,9 +29,7 @@ options(width = 60)
 
 The data of the analysis in this exercise was the Autumn 2014 Introductory Statistics Course Learning Questionnaire. The data has 60 variables and 183 observations; except for the few background related variables (age, attitude towards statistics, course points), most of the questions were learning-related questions with answers given on Likert scale, from 1 to 5.
 
-For the analysis, I've averaged the variables related to deep learning, surface learning, and strategic learning. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_learning2014.R))
-
-**Note: it seems that the chosen theme of my course diary hides embedded R code by default, even if ```echo``` is set to ```TRUE```. If you can't see the code, open the code menu from the top right corner of the diary and click “Show All Code”.**
+For the analysis, I've averaged the variables related to deep learning, surface learning, and strategic learning. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_learning2014.R)).
 
 ## Overview of the Data
 
@@ -42,7 +40,7 @@ lrn2014a <- as.data.frame(read.table('data/learning2014.csv',  sep="\t", header=
 ```
 
 A scatter plot matrix of the variables of the data can be drawn as follows, coloured by the gender variable:
-```{r scatter_plot_matrices, fig.width=10, fig.height=10}
+```{r scatter_plot_matrices}
 p <- ggpairs(lrn2014a, mapping = aes(col = gender), lower = list(combo = wrap("facethist", bins = 20)))
 p
 ```
@@ -102,5 +100,5 @@ plot(lrn2014_model, which = c(1,2,5))
 Interpretation of the plots:
 
 1. The Q–Q-plot demonstrates that the standardised residuals of the model fit to the theoretical quantities reasonably well, so the normal distribution assumption is valid.
-2. The residuals vs. fitted values plot doesn't show any kind of pattern, so the errors are not correlated and their size is independent of the explanatory variables (their σ<sup>2</sup> is constant)
+2. The residuals vs. fitted values plot doesn't show any kind of pattern, so the errors are not correlated and their size is independent of the explanatory variables (their σ<sup>2</sup> is constant).
 3. In addition to checking the abovementioned assumptions, it is recommended to check that no single observation has an oversized effect on the model, because these might distort the model coefficients. As the x-axis scale of the residuals vs. leverage plot is relatively narrow with no significant outliers, we can conclude that the model is not distorted by any single observation.
