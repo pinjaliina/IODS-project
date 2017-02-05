@@ -1,0 +1,206 @@
+---
+title: "Introduction to Open Data Science: Rstudio Exercise 3"
+output: html_document
+---
+
+```{r setup3, echo=FALSE, message=FALSE}
+# Clear memory.
+rm(list = ls())
+
+# Define packages required by this script.
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(boot)
+
+# This affects wrappings of the output of summary().
+options(width = 70)
+
+# Multiple plot function
+# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+# Analysis of the Student Alcohol Consumption
+
+<!-- *Describe the work you have done this week and summarize your learning.*
+
+- Describe your work and results clearly. 
+- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
+- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+-->
+
+## Introduction
+
+The data of the analysis in this exercise was Fabio Pagnotta's and Hossain Mohammad Amran's Using Data Mining To Predict Secondary School Student Alcohol Consumption (2008), published by Department of Computer Science of the University of Camerino. For the analysis, I've also created a combined total alcohol consumption variable (sum of weekday and weekend consumption) and created a separate logical high use variable, based on the total consumption. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_alc.R)).
+
+## Overview of the Data
+
+The data is read in as follows:
+```{r data_input3}
+# Read in the data
+alc <- as.data.frame(read.table('data/alc.csv',  sep="\t", header=TRUE))
+```
+
+A glimpse of all of the variables of the data can be displayed as follows:
+```{r data_summary3}
+glimpse(alc)
+```
+
+## Purpose of the Analysis
+
+As can be seen from the above variable list, there are both numerical and factorial background variables. The target variable for this analysis is the binary high/low alcohol consumption variable. To analyse that, I've chosen the following four variables that I assume are indicative of students' alcohol consumption:
+
+1. Absence of lessons (variable absence). I assume that students who skip lessons drink a lot drink more.
+2. Going out (variable goout). I assume that students who go out more do so to drink, so they drink more.
+3. Final grade (variable G3). I assume that students with poor grades drink more.
+4. Study time (variable studytime). I assume that students who spend less time studying spend more time drinking.
+
+A summary and some plots of the chosen variables are shown below (boxplots' whiskers extend to 75% of the interquartile range). I also grouped the box plots by sex to see any potential differences between them:
+
+```{r summary and descriptive boxplots of alc}
+summary(alc[c('absences','goout','G3','studytime')])
+p1 <- ggplot(alc, aes(x = high_use, y = absences, col=sex)) + geom_boxplot() + xlab('high use')
+p2 <- ggplot(alc, aes(goout)) + geom_bar(aes(fill = high_use), position = "dodge", stat="count") + xlab('going out')
+p3 <- ggplot(alc, aes(x = high_use, y = G3, col=sex)) + geom_boxplot() + ylab('final grade') + xlab('high use')
+p4 <- ggplot(alc, aes(studytime)) + geom_bar(aes(fill = high_use), position = "dodge", stat="count")
+# The multiplot() is defined in the init section of this file. For details, see
+# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+multiplot(p1, p2, p3, p4, cols = 2)
+```
+
+# Logistic Regression Analysis
+
+Based on the above exploration of the variables, it looks like all my previously stated hypothetical assumptions were true to at least some extent, with perhaps the exception of final grade. To confirm this, I did a logistic regression analysis using my chosen variables as the explanatory variables.
+
+In the following, a model is fitted to the data and summarised.
+
+```{r fit the logistic regression model using the initially chosen vars and summarise}
+m <- glm(high_use ~ absences + goout + G3 + studytime, data = alc, family = "binomial")
+summary(m)
+```
+
+By the model summary, it looks like my hypothesis was wrong with regard the final grade, which wasn't a good predictor at all of high alcohol consumption: it bears no statistical significance whatsoever to it. All the other chosen explanatory variables are relatively strong predictors. Calculating the odds ratios hints to the same direction:
+
+```{r calculate and present odds ratios for the alc model}
+or <- exp(coef(m))
+or
+```
+
+As shown by the odds ratios, a student has virtually the same likelihood to consume much alcohol regardless of the grade. Interestingly, the absences are not much of a factor either: a student with lot of absences is only 1.06 times more likely to consume a lot of alcohol. With regard outgoingness and studytime the results are, however, very clear: a student who goes out a lot is two times more likely to also drink a lot. Same goes for studytime: a student who studies a lot is almost half less likely to drink a lot. But while absence doesn't increase the likelihood of high use a lot, comparing its odd ratio to its confidence interval still confirms its statistical significance:
+
+```{r compare odds ratios to their confidence intervals, message=FALSE}
+ci <- exp(confint(m))
+cbind(or, ci)
+```
+As shown by the confidence intervals of the odd ratios, the confidence intervals of all the other explanatory variables except that of final grade (G3) steer well clear of one, which means that the likelihoods that the odds predicted by them are low. With regard the final grade, however, my initial hypothesis was clearly wrong because the value one is almost in the middle of its confidence interval. Thus, before making any actual predictions using the model, it's best to refit it without that variable:
+```{r refit model without G3, summarise it and re-calculate ORs and CIs, message=FALSE}
+m <- glm(high_use ~ absences + goout + studytime, data = alc, family = "binomial")
+summary(m)
+cbind(exp(coef(m)), exp(confint(m)))
+```
+As shown by the above statistics, the remaining explanatory variables are now all statistically highly significant and have confidence intervals well clear of the value one, so the model is now ready to be used for predictions.
+
+# Predicting with the Model
+
+The model can be used for predictions as follows:
+```{r predict with the LR model}
+# Predict the probability.
+probabilities <- predict(m, type = "response")
+# Add the probabilities to alc.
+alc <- mutate(alc, probability = probabilities)
+# Calculate a logical high use value based on probabilites.
+alc <- mutate(alc, prediction = probability > 0.5)
+# Tabulate the target variable versus the predictions,
+# with both absolute and proportional numbers.
+tbl <- table(high_use = alc$high_use, prediction = alc$prediction)
+addmargins(tbl)
+round(addmargins(prop.table(tbl)), 2)
+```
+As the tables show, the model is too careful in its predictions; it predicts less occurrences of high use than what the actual data shows. This can also be demonstrated graphically:
+```{r plot actual and LR mode prediction results}
+hu <- as.data.frame(prop.table(table(alc$high_use)))
+pred <- as.data.frame(prop.table(table(alc$prediction)))
+pp1 <- ggplot(hu, aes(Var1, Freq)) + geom_col(aes(fill = Var1)) + scale_y_continuous(limits = 0:1) + ylab('frequency') + xlab('observed high use') + theme(legend.position = 'none')
+pp2 <- ggplot(pred, aes(Var1, Freq)) + geom_col(aes(fill = Var1)) + scale_y_continuous(limits = 0:1) + ylab('frequency') + xlab('predicted high use') + theme(legend.position = 'none')
+multiplot(pp1, pp2, cols = 2)
+```
+
+The actual model training error can be calculated as follows (note that this is a function only because one is needed later on for cv.glm()):
+```{r calculate LR model training error}
+mloss <- function(obs, prob) {
+  res <- ifelse(prob > 0.5, 1, 0)
+  mean(res != obs)
+}
+round(mloss(obs = alc$high_use, prob = alc$probability), 2)
+```
+
+The training error is 24%, thus the model has a little over 75% accuracy. This isn't perfect, but likely still better than any simple guessing strategy, given that by guessing alone I wasn't able to predict my chosen variables' statistical significance correctly.
+
+## Cross-validation (bonus task)
+
+To test the model further, cross-validation can be performed. The following performs a 10-fold cross-validation:
+```{r perform cross-validation of the LR model}
+cv <- cv.glm(data = alc, cost = mloss, glmfit = m, K = 10)
+cv$delta[1] # Print the average number of wrong predictions.
+```
+
+The average training error of the 10-fold cross-validation is `r round(cv$delta[1], 2)`, which is already better performance than [the model introduced in the DataCamp exercise](https://campus.datacamp.com/courses/helsinki-open-data-science/logistic-regression?ex=16) has. However, the model could be improved further by adding more variables. This model, however, does not include sex as a variable, while according to the DataCamp exercise it is a statistically significant variable. Thus, we could try adding it and run the cross-validation to further improve the model:
+```{r re-LR and re-predict with sex as an explanatory variable, message=FALSE}
+m2 <- glm(high_use ~ absences + goout + studytime + sex, data = alc, family = "binomial")
+summary(m2) # Summarise the model.
+cbind(exp(coef(m2)), exp(confint(m2))) # Count odds and their confidence intervals.
+# Predict the probability.
+probabilities2 <- predict(m2, type = "response")
+# Add the probabilities to alc.
+alc <- mutate(alc, probability2 = probabilities2)
+# Calculate a logical high use value based on probabilites.
+alc <- mutate(alc, prediction2 = probability2 > 0.5)
+# Re-run cross-validation and print the average number of wrong predictions.
+cv2 <- cv.glm(data = alc, cost = mloss, glmfit = m2, K = 10)
+cv2$delta[1]
+```
+The average training error is now only `r round(cv2$delta[1], 2)`, thus clearly lower than in the previous model.

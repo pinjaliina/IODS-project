@@ -3,7 +3,7 @@ title: "Introduction to Open Data Science: Rstudio Exercise 2"
 output: html_document
 ---
 
-```{r setup, echo=FALSE, message=FALSE}
+```{r setup2, echo=FALSE, message=FALSE}
 # Clear memory.
 rm(list = ls())
 
@@ -34,7 +34,7 @@ For the analysis, I've averaged the variables related to deep learning, surface 
 ## Overview of the Data
 
 The data is read in as follows:
-```{r data_input}
+```{r data_input2}
 # Read in the data
 lrn2014a <- as.data.frame(read.table('data/learning2014.csv',  sep="\t", header=TRUE))
 ```
@@ -46,7 +46,7 @@ p
 ```
 
 A summary of each of the variables of the data can be displayed as follows:
-```{r data_summary}
+```{r data_summary2}
 summary(lrn2014a)
 ```
 
