@@ -130,7 +130,7 @@ $(document).ready(function () {
 -->
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The data of the analysis in this exercise was Fabio Pagnotta’s and Hossain Mohammad Amran’s Using Data Mining To Predict Secondary School Student Alcohol Consumption (2008), published by Department of Computer Science of the University of Camerino. For the analysis, I’ve also created a combined total alcohol consumption variable (sum of weekday and weekend consumption) and created a separate logical high use variable, based on the total consumption. (For the initial data wrangling part of this exercise, see <a href="https://github.com/pinjaliina/IODS-project/blob/master/data/create_alc.R">this R script</a>).</p>
+<p>The data of the analysis in this exercise was Fabio Pagnotta’s and Hossain Mohammad Amran’s Using Data Mining To Predict Secondary School Student Alcohol Consumption (2008), published by Department of Computer Science of the University of Camerino (<a href="https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION">link: https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION</a>). For the analysis, I’ve also created a combined total alcohol consumption variable (sum of weekday and weekend consumption) and created a separate logical high use variable, based on the total consumption. (For the initial data wrangling part of this exercise, see <a href="https://github.com/pinjaliina/IODS-project/blob/master/data/create_alc.R">this R script</a>).</p>
 </div>
 <div id="overview-of-the-data" class="section level2">
 <h2>Overview of the Data</h2>
@@ -331,8 +331,8 @@ round(mloss(obs = alc$high_use, prob = alc$probability), 2)</code></pre>
 <p>To test the model further, cross-validation can be performed. The following performs a 10-fold cross-validation:</p>
 <pre class="r"><code>cv &lt;- cv.glm(data = alc, cost = mloss, glmfit = m, K = 10)
 cv$delta[1] # Print the average number of wrong predictions.</code></pre>
-<pre><code>## [1] 0.2329843</code></pre>
-<p>The average training error of the 10-fold cross-validation is 0.23, which is already better performance than <a href="https://campus.datacamp.com/courses/helsinki-open-data-science/logistic-regression?ex=16">the model introduced in the DataCamp exercise</a> has. However, the model could be improved further by adding more variables. This model, however, does not include sex as a variable, while according to the DataCamp exercise it is a statistically significant variable. Thus, we could try adding it and run the cross-validation to further improve the model:</p>
+<pre><code>## [1] 0.2434555</code></pre>
+<p>The average training error of the 10-fold cross-validation is 0.24, which is already better performance than <a href="https://campus.datacamp.com/courses/helsinki-open-data-science/logistic-regression?ex=16">the model introduced in the DataCamp exercise</a> has. However, the model could be improved further by adding more variables. This model, however, does not include sex as a variable, while according to the DataCamp exercise it is a statistically significant variable. Thus, we could try adding it and run the cross-validation to further improve the model:</p>
 <pre class="r"><code>m2 &lt;- glm(high_use ~ absences + goout + studytime + sex, data = alc, family = &quot;binomial&quot;)
 summary(m2) # Summarise the model.</code></pre>
 <pre><code>## 

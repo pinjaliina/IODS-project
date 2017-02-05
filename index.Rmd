@@ -1,6 +1,6 @@
 ---
 author: "Pinja-Liina Jalkanen"
-title: "IODS course project"
+title: "IODS Course Project"
 output:
   html_document:
     theme: lumen

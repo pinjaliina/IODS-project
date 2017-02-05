@@ -75,7 +75,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 ## Introduction
 
-The data of the analysis in this exercise was Fabio Pagnotta's and Hossain Mohammad Amran's Using Data Mining To Predict Secondary School Student Alcohol Consumption (2008), published by Department of Computer Science of the University of Camerino. For the analysis, I've also created a combined total alcohol consumption variable (sum of weekday and weekend consumption) and created a separate logical high use variable, based on the total consumption. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_alc.R)).
+The data of the analysis in this exercise was Fabio Pagnotta's and Hossain Mohammad Amran's Using Data Mining To Predict Secondary School Student Alcohol Consumption (2008), published by Department of Computer Science of the University of Camerino ([link: https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION)). For the analysis, I've also created a combined total alcohol consumption variable (sum of weekday and weekend consumption) and created a separate logical high use variable, based on the total consumption. (For the initial data wrangling part of this exercise, see [this R script](https://github.com/pinjaliina/IODS-project/blob/master/data/create_alc.R)).
 
 ## Overview of the Data
 
