@@ -64,7 +64,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 }
 ```
 
-# Analysis of the Student Alcohol Consumption
+# Analysis of Alcohol Consumption
 
 <!-- *Describe the work you have done this week and summarize your learning.*
 
@@ -112,7 +112,7 @@ p4 <- ggplot(alc, aes(studytime)) + geom_bar(aes(fill = high_use), position = "d
 multiplot(p1, p2, p3, p4, cols = 2)
 ```
 
-# Logistic Regression Analysis
+## Logistic Regression Analysis
 
 Based on the above exploration of the variables, it looks like all my previously stated hypothetical assumptions were true to at least some extent, with perhaps the exception of final grade. To confirm this, I did a logistic regression analysis using my chosen variables as the explanatory variables.
 
@@ -144,7 +144,7 @@ cbind(exp(coef(m)), exp(confint(m)))
 ```
 As shown by the above statistics, the remaining explanatory variables are now all statistically highly significant and have confidence intervals well clear of the value one, so the model is now ready to be used for predictions.
 
-# Predicting with the Model
+## Predicting with the Model
 
 The model can be used for predictions as follows:
 ```{r predict with the LR model}
