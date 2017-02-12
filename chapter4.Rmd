@@ -1,0 +1,270 @@
+---
+title: "Introduction to Open Data Science: Rstudio Exercise 4"
+output: html_document
+---
+
+```{r setup4, echo=FALSE, message=FALSE}
+# Clear memory.
+rm(list = ls())
+
+# Define packages required by this script.
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(tidyverse)
+library(corrplot)
+library(MASS)
+
+# This affects wrappings of the output of summary().
+options(width = 70)
+
+# Multiple plot function
+# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+# Classification of the Boston Dataset
+
+<!-- *Describe the work you have done this week and summarize your learning.*
+
+- Describe your work and results clearly. 
+- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
+- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+-->
+
+## Introduction
+
+The data of this classification and clustering exercise was the Housing Values in Suburbs of Boston dataset, henceforth referred to just as Boston. It is available from the R package MASS, [which includes Functions and datasets to support Venables and Ripley, "Modern Applied Statistics with S" (4th edition, 2002).](https://cran.r-project.org/web/packages/MASS/index.html). According to the [reference manual of the package](https://cran.r-project.org/web/packages/MASS/MASS.pdf), the dataset includes 506 observations of the following 14 variables:
+
+* crim: per capita crime rate by town.
+* zn: proportion of residential land zoned for lots over 25,000 sq.ft.
+* indus: proportion of non-retail business acres per town.
+* chas: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+* nox nitrogen oxides concentration (parts per 10 million).
+* rm: average number of rooms per dwelling.
+* age: proportion of owner-occupied units built prior to 1940.
+* dis: weighted mean of distances to five Boston employment centres.
+* rad: index of accessibility to radial highways.
+* tax: full-value property-tax rate per $10,000.
+* ptratio: pupil-teacher ratio by town.
+* black: 1000 × (Bk − 0.63)<sup>2</sup> where Bk is the proportion of blacks by town.
+* lstat: lower status of the population (percent).
+* medv: median value of owner-occupied homes in $1,000s.
+
+According to the reference manual, the data is based on the following sources:
+
+* Harrison, D. and Rubinfeld, D.L. (1978) Hedonic prices and the demand for clean air. *J. Environ. Economics and Management* 5, 81–102.
+* Belsley D.A., Kuh, E. and Welsch, R.E. (1980) *Regression Diagnostics. Identifying Influential Data and Sources of Collinearity*. New York: Wiley.
+
+## Overview of the Data
+
+After the MASS package has been loaded – by calling ```library(MASS)``` – the built-in datasets can be prepared simply by calling their names using ```data()```. This enables accessing them by their names. They're, however, loaded by using so-called lazy loading and thus only become data frames when they're accessed for the first time (see [```help("data")```](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/data.html) for details):
+```{r data_input4}
+# Prepare the data. (Quotes are optional but recommended; see help("data").)
+data("Boston")
+```
+
+Glimpse the data to confirm it matches the reference manual:
+```{r data_summary4}
+# The data is only turned into an actual data frame at this point.
+glimpse(Boston)
+```
+
+Explore the data graphically:
+```{r scatter_plot_matrices_boston}
+# Subplot axis labels are partially too cramped, but I failed to find a working solution for that.
+p <- ggpairs(Boston, mapping = aes(), lower = list(combo = wrap("facethist", bins = 10)), upper = list(continuous = wrap("cor", size=3)))
+p
+```
+
+Show variable summaries:
+```{r Boston_variable_summaries}
+summary(Boston)
+```
+
+As can be seen from the output, almost all of the variables variables are continuous, with the exception of the Charles River bound tract (chas) variable, which is binary, and the radial highways accessibility variable (rad), which is an index, but still measured on an interval level.
+
+The distribution of most variables is rather skewed, except for the dwelling size (number of rooms; rm), which is normally distributed and median value of owner-occupied homes, which is nearly normally distributed. Some variables are very highly skewed, like the crime rate (crim), proportion of land zoned for very large lots (zn) and proportion of black people (black).
+
+There are a lot of variables in the data, so it might be helpful to calculate a correlation matrix of the data and visualise it:
+```{r Boston_cor_matrix}
+# calculate the correlation matrix and round it
+cor_matrix<-cor(Boston) %>% round(digits = 2)
+# visualize the correlation matrix
+corrplot(cor_matrix, method="circle", type="upper", tl.pos="d", tl.cex=0.6)
+```
+
+A numerical equivalent of a correlation plot including only the highest correlations might be created as follows. I personally found this to be the most intuitive way to find the highest correlations:
+```{r Boston_cor_matrix_high_values_only}
+cb <- as.data.frame(cor(Boston)) # Create a DF of the correlation matrix.
+cor_matrix_high <- as.data.frame(matrix(nrow = 14, ncol = 14)) #Copy
+colnames(cor_matrix_high) <- colnames(cor_matrix) #the structure of
+rownames(cor_matrix_high) <- rownames(cor_matrix) #cor_matrix.
+cor_threshold <- 0.7
+# Loop through the correlation matrix and save only values that exceed the threshold.
+for(col in names(cb)) {
+  for(row in 1:length(cb[[col]])) {
+    if(abs(cb[[col,row]]) > cor_threshold & abs(cb[[col,row]]) < 1) { 
+      cor_matrix_high[col,as.character(rownames(cb)[row])] <- round(cb[[col,row]], digits = 2)
+    }
+  }
+}
+# Print the matrix.
+cor_matrix_high
+```
+
+Variables tax (property taxes) and rad have a remarkably high correlation with each other: 0.91. This might mean that the taxation is at least partially based on the highway accessibility. Other relatively high correlations include e.g. the negative correlation between the amount of nitrogen oxides (nox) and rad (-0.77), positive correlation between industry presence (indus) and nox (0.76) and negative correlation between the proportion of pre-1940s buildings (age) and rad.
+
+## Standardising and Categorising the Data
+
+To further analyse the dataset, the dataset must be standardised, i.e. all variables fit to normal distribution so that the mean of every variable is zero. This can be done as follows:
+```{r boston_standardise}
+boston_scaled <- as.data.frame(scale(Boston))
+summary(boston_scaled)
+```
+
+We can now see from the output of ```summary()``` that this works as intended. We also need to categorise our target variable – crim – to classify it:
+```{r boston_scaled_crime_categorise}
+# Create a quantile vector of crim, and use it to create the categorical "crime".
+bins <- quantile(boston_scaled$crim)
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c('low','med_low','med_high','high'))
+# Replace the original unscaled variable.
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+boston_scaled <- data.frame(boston_scaled, crime)
+table(boston_scaled$crim) # Explore the categorised variable.
+```
+
+## Dividing the Data and Fitting the Model
+
+To create the LDA model and to test it, the data has to be divided into training and testing sets. This can be done as follows, choosing randomly 80% of the data to be used for training:
+```{r boston_scaled_divide}
+n <- nrow(boston_scaled) # Get number of rows in the dataset.
+ind <- sample(n,  size = n * 0.8) # Choose randomly 80% of the rows.
+train <- boston_scaled[ind,] # Create train set.
+test <- boston_scaled[-ind,] # Create test set.
+# Save the correct classes from the test data.
+correct_classes <- test$crime
+# Remove the crime variable from the test data.
+test <- dplyr::select(test, -crime)
+```
+
+With the data divided, it is now possible to fit the LDA model on the training set:
+```{r boston_scaled_LDA}
+lda.fit <- lda(crime ~ ., data = train)
+lda.fit
+```
+
+As we used quantiles to categorise the original variable, we've four classes. Thus, the output shows that we've three linear discriminants, as expected. Of these, the first explains vast majority – 94% – of the between-group variance.
+
+The first two of the model's linear discriminants can be visualised follows. A [helper function](http://stackoverflow.com/questions/17232251/how-can-i-plot-a-biplot-for-lda-in-r) is needed to draw the arrows in the biplot:
+```{r boston_scaled_LDA_biplot}
+# Define a function for the biplot arrows.
+lda.arrows <- function(x, myscale = 2, arrow_heads = 0.2, color = "deeppink", tex = 1, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+classes <- as.numeric(train$crime) # Turn the classes to numeric for plotting.
+plot(lda.fit, dimen = 2, col = classes, pch = classes) # Plot.
+lda.arrows(lda.fit) # Add arrows.
+```
+
+It's possible to visualise all three discriminants, but the ```lda.arrows()``` function is incompatible with that:
+```{r boston_scaled_LDA_3D_biplot}
+plot(lda.fit, dimen = 3, col = classes, pch = classes) # Plot.
+```
+
+## Predicting with the Model
+
+We've already prepared the test set above, so it's now possible to move straight into predictions:
+```{r boston_scaled_LDA_predict}
+lda.pred <- predict(lda.fit, newdata = test) # Predict the test values.
+# Cross tabulate the predictions with the correct values.
+addmargins(table(correct = correct_classes, predicted = lda.pred$class))
+```
+
+(I used ```addmargins() when tabulating, because in my opinion that's more illustrative and helps. comparisons.)
+As seen from the table, the model did predict the highest of crime rates reliably, but the “med_low” category is overrepresented relative to the “low” and “med_high” categories. Thus, the model can be used to make crude predictions, but it's hardly perfect. It might be better to use an unsupervised method and cluster the data instead of classifying it.
+
+## Clustering the Data
+
+To cluster the data, it needs to be loaded and standardised again, and a distance matrix created out of it:
+```{r boston_standardise2}
+boston_scaled <- as.data.frame(scale(Boston)) # Standardise the data.
+dist_eu <- dist(boston_scaled) # Create an euclidian distance matrix.
+summary(dist_eu) # Summarise the matrix.
+```
+
+We can try to cluster the data with k-means straight away. We used four classes for our LDA model, so we might try it with as many clusters instead:
+```{r boston_k-means_4}
+km <-kmeans(dist_eu, centers = 4) # Cluster the data.
+pairs(boston_scaled, col = km$cluster) # Plot the clusters.
+```
+
+However, while the results look somewhat reasonable, the amount of clusters was merely a guess. To determine it properly, the total within cluster sum of squares (TWCSS) should be calculated. Let's try it, with a maximum of 15 clusters:
+```{r boston_k-means_TWCSS}
+k_max <- 15 # Maximum number of clusters to try.
+# Define a function for testing.
+k_try <- function(k) {
+  kmeans(dist_eu, k)$tot.withinss
+}
+# Calculate the total within sum of squares using the function.
+twcss <- sapply(1:k_max, k_try)
+
+# Visualize the results.
+plot(1:k_max, twcss, type='b')
+```
+
+The optimal number of cluster is where the TWCSS drops radically; however, by inspecting the above plot, it's somewhat debatable, whether this happens with with just two or four clusters. Thus, for comparison, let's re-cluster the data with just two clusters:
+```{r boston_k-means_2}
+km <-kmeans(dist_eu, centers = 2) # Cluster the data.
+pairs(boston_scaled, col = km$cluster) # Plot the clusters.
+```
+
+As the plots above demonstrate, there seems to be less overlap between the clusters than with four clusters, which suggests that at least when using euclidian distance, the optimal number of clusters is indeed two. Because it's possible that different distance measures produce different results, I also briefly tested my code by creating the ```dist_eu``` variable using the manhattan distance method instead, but found the results to be in this case so similar to the euclidian method that it's not worth repeating those results here. The most notable difference was that with the manhattan method, the TWCSS plot hinted even more strongly that the optimal number of clusters is two.
